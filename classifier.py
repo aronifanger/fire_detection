@@ -56,23 +56,37 @@ def Fire_net(weights_path, img_width, img_height):
 
     return model
 
-
 img_width, img_height = 85, 128
-model_name = '/home/notebooks/rnpi-all-iamaron-master/src/models/fire_detection_weights.h5'
+model_name = '/home/notebooks/api/models/fire_vgg16_weights.h5'
 
 model = Fire_net(model_name,img_width, img_height)
 sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(optimizer=sgd, loss='categorical_crossentropy')
 
-def predict_fire(image_path):
-    img = np.empty((1, 3, img_width, img_height), np.uint8)
-    img_loaded = load_img(image_path, grayscale=False, target_size=(img_width, img_height))
-    img[0] = img_to_array(img_loaded, dim_ordering='th')
 
+def predict(image):
+    img = np.empty((1, 3, img_width, img_height), np.uint8)
+    img[0] = img_to_array(image, dim_ordering='th')
     out = model.predict(img)
     predict = np.argmax(out)
-
     if(predict == 1):
         return "Fogo!"
     else:
         return "Não tem fogo..."
+
+    
+def predict_from_path(image_path):op
+    image = load_img(image_path, grayscale=False, target_size=(img_width, img_height))
+    return predict(image)
+    
+def predict_from_url(image_url):
+    resp = urllib.urlopen(url)
+    image = np.asarray(bytearray(resp.read()), dtype="uint8")
+    image = cv2.imdecode(image, cv2.IMREAD_UNCHANGED)
+    image = cv2.resize(image, (img_height, img_width))
+    return predict(image)
+    
+def predict_from_image(image):
+    image = cv2.resize(image, (img_height, img_width))
+    return predict(image)
+    
